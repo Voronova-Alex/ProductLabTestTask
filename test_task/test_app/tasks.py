@@ -1,7 +1,9 @@
 import requests
 from .models import Product
+from celery import shared_task
 
 
+@shared_task
 def create_product(list):
     for article in list:
         try:
@@ -15,10 +17,11 @@ def create_product(list):
                 product.brand = response_brand
                 product.save()
             else:
-                product = Product(article=article, title=response_name, brand=response_brand)
+                product = Product.objects.create(article=article, title=response_name, brand=response_brand)
                 product.save()
-
         except ValueError:
             if Product.objects.filter(brand=f'Error {article}').exists() == False:
-                product = Product(article=0, title='Product not found', brand=f'Error {article}')
+                product = Product.objects.create(article=0, title='Product not found', brand=f'Error {article}')
                 product.save()
+
+
